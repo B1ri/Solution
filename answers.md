@@ -8,6 +8,7 @@
 <br>
 4. **High** – The current impact is low because the hospital is cosed at the moment. However, the potential impact is high bacuse the hospital goes live tomorrow and it may affect a lot of people. The urgency is medium because its not affecting users right now but it needs to be resolved before tommorow morning.
 
+<br>
 
 ****Second task****
 
