@@ -26,7 +26,7 @@ echo "Calling playbook script."
 
 
 if [ -f "$DIR/dicom_playbook.yml" ]; then
-  ansible-playbook -i "localhost," -c local "$DIR/dicom_playbook.yml"
+  sudo ansible-playbook -i "localhost," -c local "$DIR/dicom_playbook.yml" --ask-become-pass
   else
   echo "You need to have dicom_playbook.yml placed in same directory as setup bash file"
   exit 1
