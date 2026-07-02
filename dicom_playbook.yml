@@ -1,0 +1,11 @@
+#WORK IN PROGRESS 
+- name: Install and configure an Orthanc DICOM server running inside a Docker container.
+  hosts: localhost
+  become: true
+  vars: 
+    container_name:
+  tasks:
+    - name: Install Docker dependencies
+    - name: Install Docker
+    - name: Configure Orthanc
+    - name: Run Orthanc container
