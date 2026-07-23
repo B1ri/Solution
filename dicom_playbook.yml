@@ -1,17 +1,94 @@
 #WORK IN PROGRESS
 - name: Install and configure an Orthanc DICOM server running inside a Docker container.
   hosts: localhost
-  gather_facts: false
+  gather_facts: true
   vars: 
     container_name: dicom_container
+
   tasks:
     - name: Install Docker dependencies
+      apt:      # ansible.builtin.apt
+        name:
+          - ca-certificates   #allow system to trust HTTPS certificates
+          - gnupg   # tool for working with gpg key
+        state: present
+    - name: Create Docker keyrings directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"    # owner rwx, rx group, rx others
+
+    - name: Download Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"    # owner rw, r group, r others
+
+    - name: Get DEB architecture
+      command: dpkg --print-architecture
+      register: deb_architecture
+      changed_when: false
+
+    - name: Add Docker apt repository
+      apt_repository:   # ansible.builtin.apt_repository
+        repo: "deb [arch={{ deb_architecture.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state:  present
+    
+    - name: Update apt cache
+      apt:
+        update_cache: true
+    
+    - name: Install Docker
       apt:
         name:
-          - ca-certificates
-          - curl
-          - gnupg
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
         state: present
-    #- name: Install Docker
-    #- name: Configure Orthanc
-    #- name: Run Orthanc container
+
+    - name: Ensure Docker service is running
+      service: 
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Create Orthanc config directory
+      file:
+        path: /opt/orthanc/config
+        state:  directory
+        mode: "0755"
+
+    - name: Create Orthanc data directory
+      file:
+        path: /opt/orthanc/data
+        state:  directory
+        mode: "0755"
+
+    - name: Configure Orthanc
+      copy:
+        dest: /opt/orthanc/config/orthanc.json
+        mode: "0644"
+        content: |
+          {
+            "Name": "Orthanc Docker Server",
+            "RemoteAccessAllowed": true,
+            "AuthenticationEnabled": true,
+            "RegisteredUsers": {
+              "orthanc": "orthanc"
+            }
+          }
+    - name: Run Orthanc container
+      docker_container:    #community.docker.docker_container
+        name: "{{ container_name }}"
+        image:  orthancteam/orthanc:latest
+        state:  started
+        restart_policy: unless-stopped
+        ports:
+          - "8042:8042"
+          - "4242:4242"
+        volumes:
+          - "/opt/orthanc/config/orthanc.json:/etc/orthanc/orthanc.json:ro"
+          - "/opt/orthanc/data:/var/lib/orthanc/db"
+

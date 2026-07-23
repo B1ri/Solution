@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+ #!/usr/bin/env bash
 
 # This script prepares the environment and dependencies for the installation and configuration of Orthanc DICOM server using Ansible playbook.
-set -eu
+set -eu     # Stop the script if a command fails or an undefined variable
 
 echo "Checking environment."
 
@@ -26,7 +26,7 @@ echo "Calling playbook script."
 
 
 if [ -f "$DIR/dicom_playbook.yml" ]; then
-  sudo ansible-playbook -i "localhost," -c local "$DIR/dicom_playbook.yml" --ask-become-pass
+  sudo ansible-playbook -i "localhost," -c local "$DIR/dicom_playbook.yml"
   else
   echo "You need to have dicom_playbook.yml placed in same directory as setup bash file"
   exit 1
